@@ -73,14 +73,14 @@ class QAModel():
                     q, a = self.generate_quiz(tmp_text)
                     if q and a:
                         try:
-                            x = generate_choices(line, a)
+                            x = self.generate_choices(line, a)
                             response[ith] = {
                                 "question": q,
                                 "choices": x,
                                 "answer": a
                             }
-                            print(f'{ith:<2}', q)
-                            print('   ', f'{str(x):<100}', f'{a:>50}')
+                            # print(f'{ith:<2}', q)
+                            # print('   ', f'{str(x):<100}', f'{a:>50}')
                             ith += 1
                         except:
                             pass
@@ -100,7 +100,7 @@ url_wiki = "https://th.wikipedia.org/wiki/%E0%B8%9B%E0%B8%A3%E0%B8%B5%E0%B8%94%E
 response = qa.generate_from_wiki(url=url_wiki)
 
 # print(question,answer)
-print(response['question'])
+print(response)
 
 # choices = qa.generate_choices(text,answer)
 # print(choices)
