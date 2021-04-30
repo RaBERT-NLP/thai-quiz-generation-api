@@ -67,7 +67,7 @@ class QAModel():
                 break
         return list(choices)
     
-    def generate_quiz_wiki(self, url, n_choices=3, window_size=400, rolling=300, n_questions=5):
+    def generate_quizzes_url(self, url, n_choices=3, window_size=400, rolling=300, n_questions=5):
         r = requests.get(url)
         encoding = chardet.detect(r.content)
         r.encoding = encoding

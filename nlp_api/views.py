@@ -89,14 +89,14 @@ def get_question(request):
 
 
 @api_view(["POST"])
-def get_questions_wiki(request):
+def get_questions_url(request):
     try :
       data = JSONParser().parse(request)
 
       url = data['url'].strip()
       limit = int(data['limit'])
 
-      data = qa.generate_quiz_wiki(url, n_questions=limit)
+      data = qa.generate_quizzes_url(url, n_questions=limit)
       
       return SuccessResponse(data, status=200)
 
