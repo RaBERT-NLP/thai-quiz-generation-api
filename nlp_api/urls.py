@@ -8,7 +8,8 @@ router.register(r'getqa', views.GetQA)
 
 urlpatterns = [
   path('hello/', views.hello),
-  path('question/', views.get_answer),
+  path('question/', views.get_question),
+  path('questions_wiki/', views.get_questions_wiki),
   path('', include(router.urls)),
   path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]

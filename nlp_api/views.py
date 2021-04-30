@@ -8,9 +8,11 @@ import hashlib
 
 from .serializers import QACahceSerializer
 from .models import QACahce
-
 from .lib.qa import QAModel
 
+import random
+
+qa = QAModel()
 
 # Create your views here.
 
@@ -47,7 +49,7 @@ def get_cache_by_hash(text_hash) :
     return False,None
 
 @api_view(["POST"])
-def get_answer(request):
+def get_question(request):
     try :
       data = JSONParser().parse(request)
       question,answer = "",""
@@ -59,7 +61,6 @@ def get_answer(request):
       cache_exists,qa_cache = get_cache_by_hash(text_hash=text_hash)
 
       if not cache_exists :
-        qa = QAModel()
         question,answer = qa.generate_quiz(text)
         choices = list(qa.generate_choices(text,answer))
         QACahce.objects.create(
@@ -85,3 +86,19 @@ def get_answer(request):
       return FailureResponse("[text] is missing in body.")
 #    except :
 #      return FailureResponse("Can't generate question and answers from this article.")
+
+
+@api_view(["POST"])
+def get_questions_wiki(request):
+    try :
+      data = JSONParser().parse(request)
+
+      url = data['url'].strip()
+      limit = int(data['limit'])
+
+      data = qa.generate_quiz_wiki(url, n_questions=limit)
+      
+      return SuccessResponse(data, status=200)
+
+    except KeyError:
+      return FailureResponse("[text] is missing in body.")

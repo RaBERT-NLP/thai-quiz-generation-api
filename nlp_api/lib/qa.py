@@ -11,6 +11,7 @@ from transformers import (
     MT5Tokenizer, MT5ForConditionalGeneration, 
     AutoTokenizer, AutoModelForMaskedLM, pipeline
 )
+from pythainlp.corpus.common import thai_stopwords
 
 class QAModel():
     def __init__(self):
@@ -19,10 +20,12 @@ class QAModel():
 
         self.wangchanberta_tokenizer = AutoTokenizer.from_pretrained("airesearch/wangchanberta-base-att-spm-uncased")
         self.wangchanberta_model = AutoModelForMaskedLM.from_pretrained("airesearch/wangchanberta-base-att-spm-uncased")
-        self.wangchanberta_pipeline = fill_mask = pipeline(task='fill-mask', tokenizer=self.wangchanberta_tokenizer, model=self.wangchanberta_model)
-
+        self.wangchanberta_pipeline = pipeline(task='fill-mask', tokenizer=self.wangchanberta_tokenizer, model=self.wangchanberta_model)
+        self.stopwords = thai_stopwords()
+    
     def generate_quiz(self, text, num_return_sequences=5):
         input_ids = self.mt5_tokenizer.encode(text, return_tensors='pt')
+
         beam_output = self.mt5_model.generate(
             input_ids, 
             max_length=80,
@@ -42,7 +45,7 @@ class QAModel():
 
                 if question.find('เป็น') == 0 or answer in question or len(answer) > len(question) or len(question) < 30:
                     continue
-                    
+
                 return question, answer
         return None, None
 
@@ -53,54 +56,55 @@ class QAModel():
         masked_text = self.masking_sentence(text, answer)
         out = self.wangchanberta_pipeline(masked_text)
         choices = {answer}
-        for i in range(n_choices):
-            choices.add(out[i]['token_str'])
-        return choices
-
-    def generate_from_wiki(self, url, WINDOW_SIZE = 400, ROLLING = 300, NUM = 10):
+        i = 0
+        while len(choices) < n_choices+1:
+            try:
+                temp_out = out[i]['token_str'].strip()
+                if '▁' not in temp_out and temp_out.strip('▁') not in self.stopwords:
+                    choices.add(temp_out)
+                i += 1
+            except:
+                break
+        return list(choices)
+    
+    def generate_quiz_wiki(self, url, n_choices=3, window_size=400, rolling=300, n_questions=5):
         r = requests.get(url)
         encoding = chardet.detect(r.content)
         r.encoding = encoding
         content = trafilatura.extract(r.text)
         response = {}
 
+        lasted_q = ''
         ith = 1
         for line in content.split('\n'):
-            if len(line) > 150 and ith <= NUM:
-                for i in range(0, max(1, len(line) - WINDOW_SIZE), ROLLING):
-                    tmp_text = line[i:i+WINDOW_SIZE]
-                    # print(tmp_text)
+            if len(line) > 150 and ith <= n_questions:
+                for i in range(0, max(1, len(line) - window_size), rolling):
+                    tmp_text = line[i:i+window_size]
                     q, a = self.generate_quiz(tmp_text)
                     if q and a:
                         try:
-                            x = self.generate_choices(line, a)
-                            response[ith] = {
-                                "question": q,
-                                "choices": x,
-                                "answer": a
-                            }
-                            # print(f'{ith:<2}', q)
-                            # print('   ', f'{str(x):<100}', f'{a:>50}')
-                            ith += 1
+                            if q == lasted_q:
+                                continue
+                            x = self.generate_choices(line, a, n_choices)
+                            if len(x) != n_choices+1:
+                                if len(x) == n_choices:
+                                    x.append('ไม่มีข้อใดถูก')
+                                else:
+                                    continue
+                            
+                            if len(x) == n_choices+1:
+                                response[ith] = {
+                                    "question": q,
+                                    "choices": x,
+                                    "answer": a,
+                                    "answer_idx": x.index(a)
+                                }
+                                lasted_q = q
+                                ith += 1
+                            else:
+                                continue
                         except:
                             pass
-                    if ith > NUM:
+                    if ith > n_questions:
                         break
-
         return response
-        
-
-
-qa = QAModel()
-
-text = "กรุงเทพมหานคร เป็นเมืองหลวงและนครที่มีประชากรมากที่สุดของประเทศไทย"
-url_wiki = "https://th.wikipedia.org/wiki/%E0%B8%9B%E0%B8%A3%E0%B8%B5%E0%B8%94%E0%B8%B5_%E0%B8%9E%E0%B8%99%E0%B8%A1%E0%B8%A2%E0%B8%87%E0%B8%84%E0%B9%8C"
-
-# question,answer = qa.generate_quiz(text)
-response = qa.generate_from_wiki(url=url_wiki)
-
-# print(question,answer)
-print(response)
-
-# choices = qa.generate_choices(text,answer)
-# print(choices)
