@@ -6,12 +6,15 @@ import requests
 import trafilatura
 import numpy as np
 import pandas as pd
+import sys
 from tqdm.notebook import tqdm
 from transformers import (
     MT5Tokenizer, MT5ForConditionalGeneration, 
     AutoTokenizer, AutoModelForMaskedLM, pipeline
 )
 from pythainlp.corpus.common import thai_stopwords
+
+sys.setrecursionlimit(1500)
 
 class QAModel():
     def __init__(self):
@@ -49,14 +52,6 @@ class QAModel():
                 return question, answer
         return None, None
 
-    def generate_quiz_text(self, text, window_size=200, rolling=200):
-        for i in range(0, max(1, len(text) - window_size), rolling):
-            tmp_text = text[i:i+window_size]
-            q, a = self.generate_quiz(tmp_text)
-            if q and a:
-                return q, a
-        return None, None
-
     def masking_sentence(self, text, target):
         return text.replace(target, '<mask>', 1)
 
@@ -74,6 +69,43 @@ class QAModel():
             except:
                 break
         return list(choices)
+
+    def generate_quizzes_text(self, text, n_choices=3, window_size=400, rolling=300, n_questions=5):
+        response = []
+        lasted_q = ''
+        ith = 1
+        for line in text.split('\n'):
+            if len(line) > 150 and ith <= n_questions:
+                for i in range(0, max(1, len(line) - window_size), rolling):
+                    tmp_text = line[i:i+window_size]
+                    q, a = self.generate_quiz(tmp_text)
+                    if q and a:
+                        try:
+                            if q == lasted_q:
+                                continue
+                            x = self.generate_choices(line, a, n_choices)
+                            if len(x) != n_choices+1:
+                                if len(x) == n_choices:
+                                    x.append('ไม่มีข้อใดถูก')
+                                else:
+                                    continue
+                            
+                            if len(x) == n_choices+1:
+                                response.append(dict({
+                                    "question": q,
+                                    "choices": x,
+                                    "answer": a,
+                                    "answer_idx": x.index(a)
+                                }))
+                                lasted_q = q
+                                ith += 1
+                            else:
+                                continue
+                        except:
+                            pass
+                    if ith > n_questions:
+                        break
+        return response
     
     def generate_quizzes_url(self, url, n_choices=3, window_size=400, rolling=300, n_questions=5):
         r = requests.get(url)

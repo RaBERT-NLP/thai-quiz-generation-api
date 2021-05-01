@@ -49,47 +49,26 @@ def get_cache_by_hash(text_hash) :
     return False,None
 
 @api_view(["POST"])
-def get_question_text(request):
+def get_quizzes_text(request):
     try :
       data = JSONParser().parse(request)
-      question,answer = "",""
-      choices = []
 
       text = data['text'].strip()
-      text_hash = int(hashlib.sha256(text.encode('utf-8')).hexdigest(), 16) % 10**12
+      limit = int(data['limit'])
 
-      cache_exists,qa_cache = get_cache_by_hash(text_hash=text_hash)
-
-      if not cache_exists :
-        question,answer = qa.generate_quiz_text(text)
-        choices = list(qa.generate_choices(text,answer))
-        QACahce.objects.create(
-          text_hash=text_hash,
-          text=text[:100],
-          question=question,
-          answer=answer,
-          choices='@@@'.join(choices)
-        )
-      if cache_exists :
-        question,answer = str(qa_cache.question),str(qa_cache.answer)
-        choices = qa_cache.choices.split('@@@')
-
-      data = {
-        "question" : question,
-        "answer" : answer,
-        "answer_index" : choices.index(answer),
-        "choices" : choices
-      }
+      data = qa.generate_quizzes_text(text, n_questions=limit)
+      
       return SuccessResponse(data, status=200)
 
     except KeyError:
-      return FailureResponse("[text] is missing in body.")
-#    except :
-#      return FailureResponse("Can't generate question and answers from this article.")
+      return FailureResponse("[text] is missing in body.")     
+
+    except:
+      return FailureResponse("Can't generate question and answers from this article.")
 
 
 @api_view(["POST"])
-def get_questions_url(request):
+def get_quizzes_url(request):
     try :
       data = JSONParser().parse(request)
 
@@ -102,3 +81,6 @@ def get_questions_url(request):
 
     except KeyError:
       return FailureResponse("[text] is missing in body.")
+    
+    except:
+      return FailureResponse("Can't generate question and answers from this article.")
