@@ -80,7 +80,7 @@ class QAModel():
         encoding = chardet.detect(r.content)
         r.encoding = encoding
         content = trafilatura.extract(r.text)
-        response = {}
+        response = []
 
         lasted_q = ''
         ith = 1
@@ -101,12 +101,12 @@ class QAModel():
                                     continue
                             
                             if len(x) == n_choices+1:
-                                response[ith] = {
+                                response.append(dict({
                                     "question": q,
                                     "choices": x,
                                     "answer": a,
                                     "answer_idx": x.index(a)
-                                }
+                                }))
                                 lasted_q = q
                                 ith += 1
                             else:
