@@ -49,7 +49,7 @@ def get_cache_by_hash(text_hash) :
     return False,None
 
 @api_view(["POST"])
-def get_question(request):
+def get_question_text(request):
     try :
       data = JSONParser().parse(request)
       question,answer = "",""
@@ -61,7 +61,7 @@ def get_question(request):
       cache_exists,qa_cache = get_cache_by_hash(text_hash=text_hash)
 
       if not cache_exists :
-        question,answer = qa.generate_quiz(text)
+        question,answer = qa.generate_quiz_text(text)
         choices = list(qa.generate_choices(text,answer))
         QACahce.objects.create(
           text_hash=text_hash,

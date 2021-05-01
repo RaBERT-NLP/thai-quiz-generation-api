@@ -49,6 +49,14 @@ class QAModel():
                 return question, answer
         return None, None
 
+    def generate_quiz_text(self, text, window_size=200, rolling=200):
+        for i in range(0, max(1, len(text) - window_size), rolling):
+            tmp_text = text[i:i+window_size]
+            q, a = self.generate_quiz(tmp_text)
+            if q and a:
+                return q, a
+        return None, None
+
     def masking_sentence(self, text, target):
         return text.replace(target, '<mask>', 1)
 
