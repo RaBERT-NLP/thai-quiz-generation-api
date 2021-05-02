@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import sys
 from tqdm.notebook import tqdm
+import string
 from transformers import (
     MT5Tokenizer, MT5ForConditionalGeneration, 
     AutoTokenizer, AutoModelForMaskedLM, pipeline
@@ -63,7 +64,9 @@ class QAModel():
         while len(choices) < n_choices+1:
             try:
                 temp_out = out[i]['token_str'].strip()
-                if '▁' not in temp_out and temp_out.strip('▁') not in self.stopwords:
+                temp_out = temp_out.strip(string.punctuation)
+                temp_out = temp_out.strip('▁')
+                if  len(temp_out) > 0 and temp_out not in self.stopwords:
                     choices.add(temp_out)
                 i += 1
             except:
