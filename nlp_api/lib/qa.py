@@ -66,7 +66,7 @@ class QAModel():
                 temp_out = out[i]['token_str'].strip()
                 temp_out = temp_out.strip(string.punctuation)
                 temp_out = temp_out.strip('▁')
-                if  len(temp_out) > 0 and temp_out not in self.stopwords:
+                if  len(temp_out) > 0 and temp_out not in self.stopwords and '<unk>' not in temp_out:
                     choices.add(temp_out)
                 i += 1
             except:
