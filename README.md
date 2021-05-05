@@ -18,6 +18,7 @@ python manage.py migrate
 ```
 
 *For the NLP class project evaluation, we should provide the secret key to the constructors.
+
 Last, create .env file and put this down.
 ```
 SECRET_KEY=django-insecure-+y0#khh8ye@($iztif3id^5jnq_j8s(izls)%1-5+ug1-r19_@
