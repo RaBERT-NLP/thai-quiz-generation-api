@@ -17,7 +17,7 @@ python manage.py makemigrations
 python manage.py migrate
 ```
 
-*For the NLP class project evaluation, we should provide the secret key to the constructor (This project not including private data)
+*For the NLP class project evaluation, we should provide the secret key to the constructors (This project is not including private data)
 
 Last, create .env file and put this down.
 ```
