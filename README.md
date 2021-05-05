@@ -17,6 +17,13 @@ python manage.py makemigrations
 python manage.py migrate
 ```
 
+*For the NLP class project evaluation, we should provide the secret key to the constructor (This project not including private data)
+
+Last, create .env file and put this down.
+```
+SECRET_KEY=django-insecure-+y0#khh8ye@($iztif3id^5jnq_j8s(izls)%1-5+ug1-r19_@
+```
+
 ## Run the project
 
 To run the project with our thai-quiz-generation-web, please use port 8000
